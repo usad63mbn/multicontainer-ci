@@ -1,0 +1,41 @@
+services:
+  frontend:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./fronted
+    ports:
+      - "3001:3000"
+    volumes:
+      - /app/node_modules
+      - ./fronted:/app
+
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    ports:
+      - "3000:80" # 리스트 형식 (하이픈 - 으로 시작)
+
+  backend:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./backend
+    container_name: app_backend
+    volumes:
+      - /app/node_modules
+      - ./backend:/app
+
+  mysql:
+    build: ./mysql
+    restart: unless-stopped
+    container_name: app_mysql
+    ports:
+      - "3307:3306" #3306이미 로컬 mysql workbench가 사용중...
+    volumes:
+      - ./mysql/mysql_data:/var/lib/mysql
+      - ./mysql/sqls/:/docker-entrypoint-initdb.d/
+    environment:
+      MYSQL_ROOT_PASSWORD: 4370
+      MYSQL_DATABASE: myapp
+# 현재상황:

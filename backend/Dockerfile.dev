@@ -1,0 +1,12 @@
+FROM node:alpine
+
+WORKDIR /app
+
+COPY ./package.json ./
+
+RUN npm install
+
+COPY . .
+
+#nodemon을 사용하기 위해서 start가 아닌 dev를 넣은 것.
+CMD [ "npm", "run", "dev"]
