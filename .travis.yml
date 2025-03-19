@@ -1,0 +1,35 @@
+language: generic
+
+sudo: required
+
+# 도커 환경 만들어주기
+services:
+  - docker
+
+# 운영 파일을 이미지를 만들기 전에, 테스트 해보기
+before_install:
+  # build하는 명령어로, ./frontend는 도커가 빌드할 때 사용할 수 있는 파일/디렉토리의 범위.(./backend는 접근 불가.)
+  - docker build -t ucs210212/react-test-app -f ./frontend/Dockerfile.dev ./frontend
+
+# 이미지를 실행하면서, npm run test 명령어를 수행.
+# dockerfile에서 적은 명령어 대신 실행하고 싶은 명령어로 덮어씀.
+# script: 테스트나 빌드, 핵심 실행 명령어를 적는 부분
+script:
+  - docker run -e CI=true ucs210212/react-test-app npm run test
+
+# 운영 버전 이미지들을 만들기.
+after_success:
+  # 이름 자체가 dockerfile이기 때문에 -f를 안적어도 됨.
+  # -t ucs210212/docker-frontend: 이미지 이름"을 ucs210212/docker-frontend로 한다는 의미.
+  # ./frontend: 빌드 context로 여기서 Dockerfile 파일을 찾음, ./frontend는 사실상 ./frontend/Dockerfile임.
+  - docker build -t ucs210212/docker-frontend ./frontend
+  - docker build -t ucs210212/docker-backend ./backend
+  - docker build -t ucs210212/docker-nginx ./nginx
+
+  # 도커 허브에 로그인 하기 위한 정보(TRAVIS CI에 저장하는 곳이 있음)
+  - echo "$DOCKER_HUB_PASSWORD" |  docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  # 이미지들을 dockerHub에 올림.
+  - docker push ucs210212/docker-frontend
+  - docker push ucs210212/docker-backend
+  - docker push ucs210212/docker-nginx
