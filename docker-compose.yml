@@ -1,21 +1,28 @@
+version: "3"
+
 services:
   frontend:
+    # 도커 이미지를 직접 빌드 할 때 사용
     build:
+      # 사용할 dockerfile 명.
       dockerfile: Dockerfile.dev
+      # dockerfile이 위치한 작업 디렉토리
       context: ./frontend
-    ports:
-      - "3001:3000"
+    # 호스트와 컨테이너 간 파일 동기화 설정
     volumes:
       - /app/node_modules
+      # 로컬의 ./frontend 디렉토리를 컨테이너 내의 /app 경로에 마운트.
+      # 로컬에서 수정하면 컨테이너에도 바로 반영되도록 하기 위함.
       - ./frontend:/app
+    stdin_open: true
 
   nginx:
+    # 서버
     restart: always
     build:
       dockerfile: Dockerfile
       context: ./nginx
-    ports:
-      - "3000:80" # 리스트 형식 (하이픈 - 으로 시작)
+    ports: -3000:80
 
   backend:
     build:
@@ -25,17 +32,3 @@ services:
     volumes:
       - /app/node_modules
       - ./backend:/app
-
-  # mysql:
-  #   build: ./mysql
-  #   restart: unless-stopped
-  #   container_name: app_mysql
-  #   ports:
-  #     - "3307:3306" #3306이미 로컬 mysql workbench가 사용중...
-  #   volumes:
-  #     - ./mysql/mysql_data:/var/lib/mysql
-  #     - ./mysql/sqls/:/docker-entrypoint-initdb.d/
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: 4370
-  #     MYSQL_DATABASE: myapp
-# 현재상황:
